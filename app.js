@@ -152,8 +152,8 @@
           <div class="ticks">${'<span></span>'.repeat(MAX_POINTS)}</div>
         </div>
         <div class="points-line">
-          <button class="btn secondary" data-action="use-pot" data-kid="${k.id}">
-            <span class="big">🏦</span><span class="label">Gebruik spaarpot</span>
+          <button class="btn secondary" data-action="use-pot" data-kid="${k.id}" title="Zet 1 punt uit de spaarpot in">
+            <span class="big">🏦</span><span class="label">Gebruik 1 punt</span>
           </button>
           <button class="btn secondary" data-action="set-max" data-kid="${k.id}" title="Zet op maximum (zonder spaarpot)">
             <span class="big">🎯</span><span class="label">Naar max</span>
@@ -380,8 +380,10 @@
   function refreshCard(kidId, s){
     const pointsEl = document.querySelector(`[data-points="${kidId}"]`);
     const minsEl = document.querySelector(`[data-mins="${kidId}"]`);
+    const potEl = document.querySelector(`[data-pot="${kidId}"]`);
     if(pointsEl) pointsEl.textContent = s.points;
     if(minsEl) minsEl.textContent = s.points * MINUTES_PER_POINT;
+    if(potEl) potEl.textContent = s.pot;
 
     const prog = document.getElementById(`progress-${kidId}`);
     if(prog){
