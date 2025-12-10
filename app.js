@@ -3,6 +3,7 @@
   const MINUTES_PER_POINT = 5;
   const STORAGE_KEY = 'screenTimeBuddy:v1';
   const LOG_LIMIT = 1000;
+  const LF = (typeof localforage !== 'undefined') ? localforage.createInstance({ name: 'schermtijd-buddy', storeName: 'data' }) : null;
 
   const kids = [
     { id:'fay', name:'Fay', emoji:'🌸' },
@@ -66,6 +67,21 @@
 
     let data = raw ? JSON.parse(raw) : null;
     if(!data){
+      // Try IndexedDB via localForage first-time bootstrap
+      if(LF){
+        try{
+          const fromIdb = window.__stb_bootstrap || null;
+          if(!fromIdb){
+            // synchronous fallback: attempt async fetch once and cache in window (best effort)
+            LF.getItem(STORAGE_KEY).then(val => { if(val){ window.__stb_bootstrap = val; localStorage.setItem(STORAGE_KEY, JSON.stringify(val)); } }).catch(()=>{});
+          }
+          if(window.__stb_bootstrap){
+            data = window.__stb_bootstrap;
+          }
+        }catch(e){ /* ignore */ }
+      }
+    }
+    if(!data){
       const dailyMax = 18;
       data = {
         lastReset: todayKey,
@@ -93,7 +109,9 @@
   }
 
   function save(data){
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const json = JSON.stringify(data);
+    localStorage.setItem(STORAGE_KEY, json);
+    if(LF){ try{ LF.setItem(STORAGE_KEY, data).catch(()=>{}); }catch(e){ /* ignore */ } }
   }
 
   function dateKey(d){
