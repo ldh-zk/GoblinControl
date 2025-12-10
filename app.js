@@ -194,48 +194,63 @@
   }
 
   function bindEvents(){
-    el.kidsGrid.addEventListener('click', (e)=>{
+    if(el.kidsGrid && !el.kidsGrid.dataset.stbBound){
+      el.kidsGrid.addEventListener('click', (e)=>{
       const btn = e.target.closest('button[data-action]');
       if(!btn) return;
       const kidId = btn.getAttribute('data-kid');
       const action = btn.getAttribute('data-action');
 
       if(action === 'use-pot') return handleUsePot(kidId);
-      if(action === 'set-max') return handleSetMax(kidId);
+        if(action === 'set-max') return handleSetMax(kidId);
 
       const delta = Number(btn.getAttribute('data-delta')) || 0;
       handleDelta(kidId, action, delta);
-    });
+      });
+      el.kidsGrid.dataset.stbBound = '1';
+    }
 
-    el.logTabs.addEventListener('click', (e)=>{
+    if(el.logTabs && !el.logTabs.dataset.stbBound){
+      el.logTabs.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab');
       if(!t) return;
       el.logTabs.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
       t.classList.add('active');
       renderLogs(load(), t.getAttribute('data-tab'));
-    });
+      });
+      el.logTabs.dataset.stbBound = '1';
+    }
 
-    el.manualResetBtn.addEventListener('click', ()=>{
-      const data = load();
-      save(dailyReset(data));
-      refresh();
-    });
-
-    el.clearAllBtn.addEventListener('click', ()=>{
-      if(confirm('Alle data wissen? Dit kan niet ongedaan worden.')){
-        localStorage.removeItem(STORAGE_KEY);
+    if(el.manualResetBtn && !el.manualResetBtn.dataset.stbBound){
+      el.manualResetBtn.addEventListener('click', ()=>{
+        const data = load();
+        save(dailyReset(data));
         refresh();
-      }
-    });
+      });
+      el.manualResetBtn.dataset.stbBound = '1';
+    }
 
-    if(el.openSettingsBtn){
+    if(el.clearAllBtn && !el.clearAllBtn.dataset.stbBound){
+      el.clearAllBtn.addEventListener('click', ()=>{
+        if(confirm('Alle data wissen? Dit kan niet ongedaan worden.')){
+          localStorage.removeItem(STORAGE_KEY);
+          refresh();
+        }
+      });
+      el.clearAllBtn.dataset.stbBound = '1';
+    }
+
+    if(el.openSettingsBtn && !el.openSettingsBtn.dataset.stbBound){
       el.openSettingsBtn.addEventListener('click', openSettings);
+      el.openSettingsBtn.dataset.stbBound = '1';
     }
-    if(el.cancelSettingsBtn){
+    if(el.cancelSettingsBtn && !el.cancelSettingsBtn.dataset.stbBound){
       el.cancelSettingsBtn.addEventListener('click', closeSettings);
+      el.cancelSettingsBtn.dataset.stbBound = '1';
     }
-    if(el.saveSettingsBtn){
+    if(el.saveSettingsBtn && !el.saveSettingsBtn.dataset.stbBound){
       el.saveSettingsBtn.addEventListener('click', saveSettings);
+      el.saveSettingsBtn.dataset.stbBound = '1';
     }
     if(el.settingsModal && !el.settingsModal.dataset.stbBackdrop){
       el.settingsModal.addEventListener('click', (e)=>{
@@ -325,14 +340,11 @@
     const data = load();
     const s = data.kids[kidId];
     const MAX_POINTS = data.settings?.dailyMax ?? 18;
+    // Consume exactly 1 point from pot per click, only if day < max and pot > 0
     if(!(s.points < MAX_POINTS && s.pot > 0)) return;
-
-    const needed = MAX_POINTS - Math.min(s.points, MAX_POINTS);
-    const take = Math.min(needed, s.pot);
-    if(take <= 0) return;
-
-    s.pot -= take;
-    s.points += take;
+    const take = 1;
+    s.pot = Math.max(0, s.pot - take);
+    s.points = Math.min(MAX_POINTS, s.points + take);
     s.logs.unshift(makeLog('pot-use', `+${take} uit spaarpot naar dagbalans`, 'blue'));
     s.logs = s.logs.slice(0, 50);
 
