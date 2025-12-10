@@ -782,9 +782,12 @@
     .a-tone.minus{ color:#b22222 }
     .a-count, .num{ text-align:right; font-variant-numeric: tabular-nums }
     .day{ text-align:center; font-variant-numeric: tabular-nums }
+    .back { position:fixed; right:16px; top:16px; padding:8px 12px; background:#eee; color:#111; border:1px solid #ccc; border-radius:8px; text-decoration:none; font-size:12px }
+    @media print { .back{ display:none } }
   </style>
 </head>
 <body>
+  <a href="#" class="back" onclick="window.close(); return false;">← Terug naar app</a>
   <h1>${title}</h1>
   <div class="subtitle">Gegenereerd op ${escapeHTML(gen)}</div>
 
@@ -1130,9 +1133,12 @@
     .tone.plus{ color:#0a8f5b }
     .tone.minus{ color:#b22222 }
     .tone.blue{ color:#0a63c7 }
+    .back { position:fixed; right:16px; top:16px; padding:8px 12px; background:#eee; color:#111; border:1px solid #ccc; border-radius:8px; text-decoration:none; font-size:12px }
+    @media print { .back{ display:none } }
   </style>
 </head>
 <body>
+  <a href="#" class="back" onclick="window.close(); return false;">← Terug naar app</a>
   <h1>${title}</h1>
   <div class="subtitle">Gegenereerd op ${escapeHTML(dateStr)}</div>
   <table>

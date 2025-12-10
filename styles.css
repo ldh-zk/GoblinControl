@@ -86,7 +86,8 @@ body{
   font-weight:900;
   letter-spacing:.2px;
   background:rgba(255,255,255,.06);
-  display:flex;align-items:center;gap:8px;justify-content:center;
+  display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;
+  max-width:100%;text-align:center;
   transition:opacity .12s ease, transform .06s ease;
 }
 .btn.primary{ background:linear-gradient(180deg, rgba(61,220,151,.25), rgba(36,180,120,.2)); border-color:rgba(61,220,151,.35) }
@@ -98,7 +99,7 @@ body{
 .btn:hover{background:rgba(255,255,255,.1)}
 .btn:active{transform:translateY(1px)}
 .btn .big{font-size:clamp(14px, 2.5vw, 18px)}
-.btn .label{font-size:clamp(12px, 2vw, 14px);color:var(--text)}
+.btn .label{font-size:clamp(12px, 2vw, 14px);color:var(--text);white-space:normal;overflow-wrap:anywhere;word-break:break-word}
 
 .spaarpot{
   display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;border:1px dashed rgba(255,255,255,.18);
