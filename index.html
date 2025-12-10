@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Schermtijd Buddy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="title">
+      <span class="logo">🕹️</span>
+      <h1>Schermtijd Buddy</h1>
+    </div>
+    <div class="today" id="today"></div>
+  </header>
+
+  <main class="container">
+    <section class="kids-grid" id="kidsGrid">
+      <!-- Child cards injected by JS -->
+    </section>
+
+    <section class="log-section">
+      <div class="log-header">
+        <h2>Logboek</h2>
+        <div class="log-tabs" id="logTabs">
+          <!-- Tabs injected by JS -->
+        </div>
+      </div>
+      <div class="log-content" id="logContent">
+        <!-- Logs injected by JS -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <div>
+      <button class="btn btn-secondary" id="manualResetBtn" title="Reset dag (verplaatst overschot naar spaarpot)">🔄 Dag reset</button>
+      <button class="btn btn-secondary" id="clearAllBtn" title="Verwijder alle data">🧹 Wis data</button>
+    </div>
+    <small>1 punt = 5 minuten schermtijd • Max 18 punten per dag</small>
+  </footer>
+
+  <div id="confetti" aria-hidden="true"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
