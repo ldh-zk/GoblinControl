@@ -83,6 +83,12 @@ body{
   display:flex;align-items:center;gap:8px;justify-content:center;
   transition:opacity .12s ease, transform .06s ease;
 }
+.btn.primary{ background:linear-gradient(180deg, rgba(61,220,151,.25), rgba(36,180,120,.2)); border-color:rgba(61,220,151,.35) }
+.btn.primary:hover{ background:linear-gradient(180deg, rgba(61,220,151,.35), rgba(36,180,120,.28)) }
+.btn.negative{ background:linear-gradient(180deg, rgba(255,90,95,.25), rgba(200,50,55,.2)); border-color:rgba(255,90,95,.35) }
+.btn.negative:hover{ background:linear-gradient(180deg, rgba(255,90,95,.35), rgba(200,50,55,.28)) }
+.btn.secondary{ background:linear-gradient(180deg, rgba(87,178,255,.22), rgba(60,140,220,.18)); border-color:rgba(87,178,255,.35) }
+.btn.secondary:hover{ background:linear-gradient(180deg, rgba(87,178,255,.32), rgba(60,140,220,.26)) }
 .btn:hover{background:rgba(255,255,255,.1)}
 .btn:active{transform:translateY(1px)}
 .btn .big{font-size:clamp(14px, 2.5vw, 18px)}
