@@ -1,5 +1,4 @@
 (function(){
-  const MAX_POINTS = 18;
   const MIN_POINTS = 0; // clamp at 0 for kid-friendly UX
   const MINUTES_PER_POINT = 5;
   const STORAGE_KEY = 'screenTimeBuddy:v1';
@@ -31,12 +30,18 @@
     today: document.getElementById('today'),
     manualResetBtn: document.getElementById('manualResetBtn'),
     clearAllBtn: document.getElementById('clearAllBtn'),
+    openSettingsBtn: document.getElementById('openSettingsBtn'),
+    settingsModal: document.getElementById('settingsModal'),
+    dailyMaxInput: document.getElementById('dailyMaxInput'),
+    cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+    saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+    ruleMax: document.getElementById('ruleMax'),
   };
 
   // --- State & Storage ---
-  function defaultKidState(){
+  function defaultKidState(max){
     return {
-      points: MAX_POINTS,
+      points: max,
       pot: 0,
       logs: [],
     };
@@ -47,10 +52,25 @@
     const today = new Date();
     const todayKey = dateKey(today);
 
-    let data = raw ? JSON.parse(raw) : {
-      lastReset: todayKey,
-      kids: Object.fromEntries(kids.map(k=>[k.id, defaultKidState()]))
-    };
+    let data = raw ? JSON.parse(raw) : null;
+    if(!data){
+      const dailyMax = 18;
+      data = {
+        lastReset: todayKey,
+        settings: { dailyMax },
+        kids: Object.fromEntries(kids.map(k=>[k.id, defaultKidState(dailyMax)]))
+      };
+    } else {
+      if(!data.settings) data.settings = { dailyMax: 18 };
+      if(typeof data.settings.dailyMax !== 'number' || data.settings.dailyMax <= 0){
+        data.settings.dailyMax = 18;
+      }
+      // Ensure all kids exist
+      kids.forEach(k => {
+        if(!data.kids) data.kids = {};
+        if(!data.kids[k.id]) data.kids[k.id] = defaultKidState(data.settings.dailyMax);
+      });
+    }
 
     // Auto daily reset if date changed
     if(data.lastReset !== todayKey){
@@ -69,6 +89,7 @@
   }
 
   function dailyReset(data){
+    const MAX_POINTS = data.settings?.dailyMax ?? 18;
     // Before setting to 18, move any overschot (>18) to pot
     Object.keys(data.kids).forEach(id => {
       const k = data.kids[id];
@@ -77,9 +98,7 @@
         k.pot += over;
         k.logs.unshift(makeLog('pot-add', `+${over} naar spaarpot (eindoverschot)`, 'blue'));
       }
-      if(k.points !== MAX_POINTS){
-        k.logs.unshift(makeLog('daily-reset', `Dag reset naar ${MAX_POINTS} punten`, 'blue'));
-      }
+      k.logs.unshift(makeLog('daily-reset', `Dag reset naar ${MAX_POINTS} punten`, 'blue'));
       k.points = MAX_POINTS;
       k.logs = k.logs.slice(0, 50);
     });
@@ -105,7 +124,10 @@
 
   // --- UI Build ---
   function buildUI(data){
+    const MAX_POINTS = data.settings?.dailyMax ?? 18;
     el.today.textContent = new Date().toLocaleDateString('nl-NL', { weekday:'long', day:'numeric', month:'long' });
+    if(el.ruleMax) el.ruleMax.textContent = String(MAX_POINTS);
+    if(el.dailyMaxInput) el.dailyMaxInput.value = String(MAX_POINTS);
 
     // Cards
     el.kidsGrid.innerHTML = '';
@@ -133,8 +155,8 @@
           <button class="btn secondary" data-action="use-pot" data-kid="${k.id}">
             <span class="big">🏦</span><span class="label">Gebruik spaarpot</span>
           </button>
-          <button class="btn secondary" data-action="set-18" data-kid="${k.id}" title="Zet op 18 (zonder spaarpot)">
-            <span class="big">🎯</span><span class="label">Naar 18</span>
+          <button class="btn secondary" data-action="set-max" data-kid="${k.id}" title="Zet op maximum (zonder spaarpot)">
+            <span class="big">🎯</span><span class="label">Naar max</span>
           </button>
         </div>
         <div class="spaarpot">
@@ -179,7 +201,7 @@
       const action = btn.getAttribute('data-action');
 
       if(action === 'use-pot') return handleUsePot(kidId);
-      if(action === 'set-18') return handleSet18(kidId);
+      if(action === 'set-max') return handleSetMax(kidId);
 
       const delta = Number(btn.getAttribute('data-delta')) || 0;
       handleDelta(kidId, action, delta);
@@ -205,6 +227,44 @@
         refresh();
       }
     });
+
+    if(el.openSettingsBtn){
+      el.openSettingsBtn.addEventListener('click', openSettings);
+    }
+    if(el.cancelSettingsBtn){
+      el.cancelSettingsBtn.addEventListener('click', closeSettings);
+    }
+    if(el.saveSettingsBtn){
+      el.saveSettingsBtn.addEventListener('click', saveSettings);
+    }
+    if(el.settingsModal && !el.settingsModal.dataset.stbBackdrop){
+      el.settingsModal.addEventListener('click', (e)=>{
+        if(e.target === el.settingsModal){
+          closeSettings();
+        }
+      });
+      el.settingsModal.dataset.stbBackdrop = '1';
+    }
+
+    // Fallback delegation to ensure buttons always work
+    if(!document.body.dataset.stbSettingsDelegation){
+      document.addEventListener('click', (ev)=>{
+        const cancelBtn = ev.target.closest && ev.target.closest('#cancelSettingsBtn');
+        const saveBtn = ev.target.closest && ev.target.closest('#saveSettingsBtn');
+        if(cancelBtn){ ev.preventDefault(); closeSettings(); }
+        if(saveBtn){ ev.preventDefault(); saveSettings(); }
+      });
+      document.body.dataset.stbSettingsDelegation = '1';
+    }
+    if(!document.body.dataset.stbEscClose){
+      document.addEventListener('keydown', (ev)=>{
+        if(ev.key === 'Escape' && el.settingsModal && !el.settingsModal.hidden){
+          ev.preventDefault();
+          closeSettings();
+        }
+      });
+      document.body.dataset.stbEscClose = '1';
+    }
   }
 
   function renderLogs(data, kidId){
@@ -230,6 +290,7 @@
       const s = data.kids[k.id];
       const useBtn = el.kidsGrid.querySelector(`button[data-action="use-pot"][data-kid="${k.id}"]`);
       if(useBtn){
+        const MAX_POINTS = data.settings?.dailyMax ?? 18;
         useBtn.disabled = !(s.points < MAX_POINTS && s.pot > 0);
         useBtn.style.filter = useBtn.disabled ? 'grayscale(40%)' : 'none';
       }
@@ -263,6 +324,7 @@
   function handleUsePot(kidId){
     const data = load();
     const s = data.kids[kidId];
+    const MAX_POINTS = data.settings?.dailyMax ?? 18;
     if(!(s.points < MAX_POINTS && s.pot > 0)) return;
 
     const needed = MAX_POINTS - Math.min(s.points, MAX_POINTS);
@@ -280,14 +342,15 @@
     syncDisableStates(data);
   }
 
-  function handleSet18(kidId){
+  function handleSetMax(kidId){
     const data = load();
     const s = data.kids[kidId];
+    const MAX_POINTS = data.settings?.dailyMax ?? 18;
     const before = s.points;
 
     // If above 18, do not auto-move to pot here; this is a simple clamp for the day (no pot change)
     s.points = MAX_POINTS;
-    s.logs.unshift(makeLog('set-18', `Dagbalans gezet op ${MAX_POINTS}`, 'blue'));
+    s.logs.unshift(makeLog('set-max', `Dagbalans gezet op ${MAX_POINTS}`, 'blue'));
     s.logs = s.logs.slice(0, 50);
 
     save(data);
@@ -312,6 +375,8 @@
     if(prog){
       const bar = prog.querySelector('.bar');
       const over = prog.querySelector('.over');
+      const data = load();
+      const MAX_POINTS = data.settings?.dailyMax ?? 18;
       const pct = Math.min(100, (Math.min(s.points, MAX_POINTS)/MAX_POINTS)*100);
       const overVal = s.points>MAX_POINTS? (Math.min(s.points - MAX_POINTS, MAX_POINTS)/MAX_POINTS)*100 : 0;
       bar.style.width = pct + '%';
@@ -354,6 +419,33 @@
 
   function toastConfetti(){
     // simple confetti placeholder: could be extended later
+  }
+
+  // --- Settings ---
+  function openSettings(){
+    if(!el.settingsModal) return;
+    el.settingsModal.hidden = false;
+  }
+  function closeSettings(){
+    if(!el.settingsModal) return;
+    el.settingsModal.hidden = true;
+  }
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+  function saveSettings(){
+    const data = load();
+    const prev = data.settings?.dailyMax ?? 18;
+    let next = parseInt(el.dailyMaxInput?.value || '18', 10);
+    if(Number.isNaN(next)) next = prev;
+    next = clamp(next, 6, 36);
+    if(!data.settings) data.settings = { dailyMax: next };
+    data.settings.dailyMax = next;
+    Object.keys(data.kids).forEach(id => {
+      data.kids[id].logs.unshift(makeLog('settings', `Max punten per dag gewijzigd naar ${next}`, 'blue'));
+      data.kids[id].logs = data.kids[id].logs.slice(0, 50);
+    });
+    save(data);
+    closeSettings();
+    buildUI(data);
   }
 
   // --- Boot ---

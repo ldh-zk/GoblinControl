@@ -29,6 +29,7 @@ body{
 .app-header .logo{font-size:28px}
 .app-header h1{font-family:"Baloo 2", cursive;font-weight:800;margin:0;letter-spacing:.2px}
 .app-header .today{opacity:.9;font-weight:700;color:var(--muted)}
+.app-header .header-right{display:flex;align-items:center;gap:10px}
 
 .container{max-width:1100px;margin:20px auto;padding:0 16px}
 .kids-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
@@ -121,3 +122,17 @@ body{
 .app-footer{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;color:var(--muted)}
 
 #confetti{pointer-events:none;position:fixed;inset:0;display:none}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:1000}
+.modal-backdrop[hidden]{display:none !important}
+.modal{background:linear-gradient(180deg, rgba(22,26,54,.95), rgba(22,26,54,.9));border:1px solid rgba(255,255,255,.08);border-radius:16px;max-width:520px;width:92vw;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.modal-header h3{margin:0;font-family:"Baloo 2"}
+.modal-body{display:grid;gap:10px}
+.field-label{font-weight:800}
+.field-inline{display:flex;align-items:center;gap:10px}
+#dailyMaxInput{width:100px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#121536;color:var(--text);font-weight:800}
+.hint{color:var(--muted);font-size:12px}
+.note{color:var(--muted);font-size:13px;margin:6px 0 0}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
