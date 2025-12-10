@@ -12,6 +12,8 @@
 <body>
   <header class="app-header">
     <div class="title">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a63c7">
       <span class="logo">🕹️</span>
       <h1>Schermtijd Buddy</h1>
     </div>
@@ -76,6 +78,9 @@
     <div>
       <button class="btn btn-secondary" id="manualResetBtn" title="Reset dag (verplaatst overschot naar spaarpot)">🔄 Dag reset</button>
       <button class="btn btn-secondary" id="clearAllBtn" title="Verwijder alle data">🧹 Wis data</button>
+      <button class="btn btn-secondary" id="exportJsonBtn" title="Exporteer alle data als JSON">⬇️ Exporteer JSON</button>
+      <button class="btn btn-secondary" id="importJsonBtn" title="Importeer JSON backup">⬆️ Importeer JSON</button>
+      <input type="file" id="importFileInput" accept="application/json" style="display:none" />
     </div>
     <small>1 punt = 5 minuten schermtijd • Max <span id="ruleMax">18</span> punten per dag</small>
   </footer>
@@ -103,6 +108,22 @@
     </div>
   </div>
 
+  <script>
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    }
+  </script>
+  <link rel="manifest" href="manifest.json" />
   <script src="app.js"></script>
+    <script>
+      // Skip SW when opened as file:// to avoid install prompts and errors
+      if(location.protocol.startsWith('http') && 'serviceWorker' in navigator){
+        window.addEventListener('load', function(){
+          navigator.serviceWorker.register('sw.js').catch(function(err){
+            console.warn('SW registratie mislukt:', err);
+          });
+        });
+      }
+    </script>
 </body>
 </html>

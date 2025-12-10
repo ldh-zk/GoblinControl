@@ -35,6 +35,9 @@
     today: document.getElementById('today'),
     manualResetBtn: document.getElementById('manualResetBtn'),
     clearAllBtn: document.getElementById('clearAllBtn'),
+    exportJsonBtn: document.getElementById('exportJsonBtn'),
+    importJsonBtn: document.getElementById('importJsonBtn'),
+    importFileInput: document.getElementById('importFileInput'),
     openSettingsBtn: document.getElementById('openSettingsBtn'),
     settingsModal: document.getElementById('settingsModal'),
     dailyMaxInput: document.getElementById('dailyMaxInput'),
@@ -314,6 +317,44 @@
         }
       });
       el.clearAllBtn.dataset.stbBound = '1';
+    }
+    if(el.exportJsonBtn && !el.exportJsonBtn.dataset.stbBound){
+      el.exportJsonBtn.addEventListener('click', ()=>{
+        const data = load();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `schermtijd-buddy_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 0);
+      });
+      el.exportJsonBtn.dataset.stbBound = '1';
+    }
+    if(el.importJsonBtn && !el.importJsonBtn.dataset.stbBound){
+      el.importJsonBtn.addEventListener('click', ()=>{
+        el.importFileInput && el.importFileInput.click();
+      });
+      el.importJsonBtn.dataset.stbBound = '1';
+    }
+    if(el.importFileInput && !el.importFileInput.dataset.stbBound){
+      el.importFileInput.addEventListener('change', async (e)=>{
+        const f = e.target.files && e.target.files[0];
+        if(!f) return;
+        try{
+          const text = await f.text();
+          const data = JSON.parse(text);
+          if(!data || typeof data !== 'object') throw new Error('Ongeldige data');
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+          refresh();
+          alert('Data geïmporteerd');
+        }catch(err){
+          alert('Import mislukt: ' + (err && err.message ? err.message : 'onbekende fout'));
+        }finally{
+          e.target.value = '';
+        }
+      });
+      el.importFileInput.dataset.stbBound = '1';
     }
     if(el.exportPdfBtn && !el.exportPdfBtn.dataset.stbBound){
       el.exportPdfBtn.addEventListener('click', ()=>{
