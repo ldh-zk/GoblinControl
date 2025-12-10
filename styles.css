@@ -103,6 +103,9 @@ body{
 .flash-red{animation:flashr 600ms ease}
 @keyframes flashr{0%{box-shadow:0 0 0 0 rgba(255,90,95,.0)}40%{box-shadow:0 0 0 6px rgba(255,90,95,.35)}100%{box-shadow:0 0 0 0 rgba(255,90,95,.0)}}
 
+.flash-blue{animation:flashb 600ms ease}
+@keyframes flashb{0%{box-shadow:0 0 0 0 rgba(87,178,255,.0)}40%{box-shadow:0 0 0 6px rgba(87,178,255,.35)}100%{box-shadow:0 0 0 0 rgba(87,178,255,.0)}}
+
 .log-section{margin-top:24px}
 .log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .log-tabs{display:flex;gap:8px}

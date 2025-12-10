@@ -96,9 +96,9 @@
       if(k.points > MAX_POINTS){
         const over = k.points - MAX_POINTS;
         k.pot += over;
-        k.logs.unshift(makeLog('pot-add', `+${over} naar spaarpot (eindoverschot)`, 'blue'));
+        pushLog(k, 'pot-add', `+${over} naar spaarpot (eindoverschot)`, 'blue');
       }
-      k.logs.unshift(makeLog('daily-reset', `Dag reset naar ${MAX_POINTS} punten`, 'blue'));
+      pushLog(k, 'daily-reset', `Dag reset naar ${MAX_POINTS} punten`, 'blue');
       k.points = MAX_POINTS;
       k.logs = k.logs.slice(0, 50);
     });
@@ -325,7 +325,7 @@
     const def = [...positiveActions, ...negativeActions].find(a=>a.id===actionId);
     const label = def ? def.label : (isPlus?`+${delta}`:`${delta}`);
 
-    s.logs.unshift(makeLog(actionId, `${delta>0?'+':''}${delta} punt voor ${label}`, tone));
+    pushLog(s, actionId, `${delta>0?'+':''}${delta} punt voor ${label}`, tone);
     s.logs = s.logs.slice(0, 50);
     save(data);
 
@@ -345,12 +345,13 @@
     const take = 1;
     s.pot = Math.max(0, s.pot - take);
     s.points = Math.min(MAX_POINTS, s.points + take);
-    s.logs.unshift(makeLog('pot-use', `+${take} uit spaarpot naar dagbalans`, 'blue'));
+    pushLog(s, 'pot-use', `+${take} uit spaarpot naar dagbalans`, 'blue');
     s.logs = s.logs.slice(0, 50);
 
     save(data);
     coinFall(kidId);
     refreshCard(kidId, s);
+    potPulse(kidId);
     syncDisableStates(data);
   }
 
@@ -362,7 +363,7 @@
 
     // If above 18, do not auto-move to pot here; this is a simple clamp for the day (no pot change)
     s.points = MAX_POINTS;
-    s.logs.unshift(makeLog('set-max', `Dagbalans gezet op ${MAX_POINTS}`, 'blue'));
+    pushLog(s, 'set-max', `Dagbalans gezet op ${MAX_POINTS}`, 'blue');
     s.logs = s.logs.slice(0, 50);
 
     save(data);
@@ -454,12 +455,31 @@
     if(!data.settings) data.settings = { dailyMax: next };
     data.settings.dailyMax = next;
     Object.keys(data.kids).forEach(id => {
-      data.kids[id].logs.unshift(makeLog('settings', `Max punten per dag gewijzigd naar ${next}`, 'blue'));
+      pushLog(data.kids[id], 'settings', `Max punten per dag gewijzigd naar ${next}`, 'blue');
       data.kids[id].logs = data.kids[id].logs.slice(0, 50);
     });
     save(data);
     closeSettings();
     buildUI(data);
+  }
+
+  // Prevent immediate duplicate log entries (e.g., double event binding)
+  function pushLog(kidState, type, text, tone){
+    const now = Date.now();
+    const last = kidState.logs && kidState.logs[0];
+    if(last && last.type === type && last.text === text && (now - last.ts) < 800){
+      return; // ignore duplicate within 800ms
+    }
+    kidState.logs.unshift(makeLog(type, text, tone));
+  }
+
+  function potPulse(kidId){
+    const amt = document.querySelector(`[data-pot="${kidId}"]`);
+    if(!amt) return;
+    amt.classList.remove('flash-blue');
+    void amt.offsetWidth;
+    amt.classList.add('flash-blue');
+    setTimeout(()=>amt.classList.remove('flash-blue'), 650);
   }
 
   // --- Boot ---
