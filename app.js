@@ -31,6 +31,7 @@
     statsTabs: document.getElementById('statsTabs'),
     statsRange: document.getElementById('statsRange'),
     statsGrid: document.getElementById('statsGrid'),
+    statsExportPdfBtn: document.getElementById('statsExportPdfBtn'),
     today: document.getElementById('today'),
     manualResetBtn: document.getElementById('manualResetBtn'),
     clearAllBtn: document.getElementById('clearAllBtn'),
@@ -264,6 +265,14 @@
       el.statsRange.dataset.stbBound = '1';
     }
 
+    if(el.statsExportPdfBtn && !el.statsExportPdfBtn.dataset.stbBound){
+      el.statsExportPdfBtn.addEventListener('click', ()=>{
+        const kidId = (el.statsTabs?.querySelector('.tab.active')?.getAttribute('data-tab')) || kids[0].id;
+        exportStatsToPDF(kidId, getActiveRange());
+      });
+      el.statsExportPdfBtn.dataset.stbBound = '1';
+    }
+
     if(el.manualResetBtn && !el.manualResetBtn.dataset.stbBound){
       el.manualResetBtn.addEventListener('click', ()=>{
         const data = load();
@@ -360,16 +369,29 @@
     if(!el.statsGrid) return;
     const startTs = rangeStartTs(range);
     const counts = aggregateCounts(data, kidId, startTs);
-    const pos = positiveActions.map(a=>statCard(a, 'plus', counts[a.id]||0)).join('');
-    const neg = negativeActions.map(a=>statCard(a, 'minus', counts[a.id]||0)).join('');
+    const pos = positiveActions.map(a=>{
+      const series = sevenDaySeries(data, kidId, a.id);
+      return statCard(a, 'plus', counts[a.id]||0, series);
+    }).join('');
+    const neg = negativeActions.map(a=>{
+      const series = sevenDaySeries(data, kidId, a.id);
+      return statCard(a, 'minus', counts[a.id]||0, series);
+    }).join('');
     el.statsGrid.innerHTML = pos + neg;
   }
 
-  function statCard(action, tone, count){
+  function statCard(action, tone, count, series){
+    const max = Math.max(1, ...series.map(x=>x.count));
+    const bars = series.map(x=>{
+      const h = x.count === 0 ? 4 : Math.max(6, Math.round((x.count/max)*30));
+      const cls = x.count === 0 ? 'bar zero' : 'bar';
+      return `<div class="${cls}" style="height:${h}px" title="${x.label}: ${x.count}"></div>`;
+    }).join('');
     return `<div class="stat-card" title="${action.label}">
       <div class="stat-icon ${tone}">${action.icon}</div>
       <div class="stat-text">
         <div class="stat-title">${action.label}</div>
+        <div class="mini-bars">${bars}</div>
       </div>
       <div class="stat-count">${count}</div>
     </div>`;
@@ -406,6 +428,149 @@
       return d.getTime();
     }
     return 0;
+  }
+
+  function sevenDaySeries(data, kidId, actionId){
+    const days = 7;
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const series = [];
+    for(let i=days-1; i>=0; i--){
+      const d = new Date(today);
+      d.setDate(d.getDate()-i);
+      const k = dateKey(d);
+      series.push({ key:k, label: k.split('-').reverse().join('-'), count:0 });
+    }
+    const startTs = new Date(today.getFullYear(), today.getMonth(), today.getDate()- (days-1)).getTime();
+    const logs = data.kids[kidId]?.logs || [];
+    for(const l of logs){
+      if(l.type !== actionId) continue;
+      if(l.ts < startTs) continue;
+      const dk = dateKey(new Date(l.ts));
+      const idx = series.findIndex(x=>x.key===dk);
+      if(idx>=0) series[idx].count += 1;
+    }
+    return series;
+  }
+
+  function exportStatsToPDF(kidId, range){
+    const data = load();
+    const startTs = rangeStartTs(range);
+    const endTs = Date.now();
+    const kidName = kids.find(k=>k.id===kidId)?.name || kidId;
+    const acts = [...positiveActions.map(a=>({ ...a, tone:'plus'})), ...negativeActions.map(a=>({ ...a, tone:'minus'}))];
+
+    // Build day keys for range
+    const startDate = new Date(startTs); startDate.setHours(0,0,0,0);
+    const endDate = new Date(endTs); endDate.setHours(0,0,0,0);
+    const days = [];
+    for(let d=new Date(startDate); d<=endDate; d.setDate(d.getDate()+1)){
+      days.push({ key: dateKey(d), label: d.toLocaleDateString('nl-NL', { day:'2-digit', month:'2-digit' }) });
+    }
+
+    // Aggregate totals and per-day counts
+    const totals = Object.create(null);
+    const byDayAction = new Map();
+    const logs = data.kids[kidId]?.logs || [];
+    for(const l of logs){
+      if(l.ts < startTs || l.ts > endTs) continue;
+      if(!acts.find(a=>a.id===l.type)) continue;
+      totals[l.type] = (totals[l.type]||0) + 1;
+      const dk = dateKey(new Date(l.ts));
+      const key = dk + '|' + l.type;
+      byDayAction.set(key, (byDayAction.get(key)||0) + 1);
+    }
+
+    // Totals table rows
+    const totalRows = acts.map(a=>{
+      const cnt = totals[a.id] || 0;
+      return `<tr>
+        <td class="a-icon">${a.icon}</td>
+        <td class="a-label">${escapeHTML(a.label)}</td>
+        <td class="a-tone ${a.tone}">${a.tone==='plus'?'➕':'➖'}</td>
+        <td class="a-count">${cnt}</td>
+      </tr>`;
+    }).join('');
+
+    // Per-day table header and rows
+    const headCols = days.map(d=>`<th class="day">${escapeHTML(d.label)}</th>`).join('');
+    const dayRows = acts.map(a=>{
+      const cols = days.map(dk=>{
+        const key = dk.key + '|' + a.id;
+        const cnt = byDayAction.get(key) || 0;
+        return `<td class="num">${cnt}</td>`;
+      }).join('');
+      return `<tr>
+        <td class="a-icon">${a.icon}</td>
+        <td class="a-label">${escapeHTML(a.label)}</td>
+        ${cols}
+      </tr>`;
+    }).join('');
+
+    const title = `Schermtijd Buddy — Statistieken ${escapeHTML(kidName)} (${rangeLabel(range)})`;
+    const gen = new Date().toLocaleDateString('nl-NL', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+    const html = `<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <style>
+    @page { size: A4; margin: 12mm; }
+    body{ font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
+    h1{ margin:0 0 4px; font-size:20px }
+    .subtitle{ color:#555; margin:0 0 10px; }
+    h2{ margin:18px 0 6px; font-size:16px }
+    table{ width:100%; border-collapse:collapse; }
+    th, td{ border-bottom:1px solid #e6e6e6; padding:6px 6px; vertical-align:top; font-size:12px }
+    th{ text-align:left; color:#444; font-weight:700; background:#fafafa }
+    .a-icon{ width:18px; text-align:center }
+    .a-label{ width:180px }
+    .a-tone.plus{ color:#0a8f5b }
+    .a-tone.minus{ color:#b22222 }
+    .a-count, .num{ text-align:right; font-variant-numeric: tabular-nums }
+    .day{ text-align:center; font-variant-numeric: tabular-nums }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <div class="subtitle">Gegenereerd op ${escapeHTML(gen)}</div>
+
+  <h2>Totals per actie</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>Actie</th><th>Type</th><th style="text-align:right">Aantal</th></tr>
+    </thead>
+    <tbody>
+      ${totalRows}
+    </tbody>
+  </table>
+
+  <h2>Per dag</h2>
+  <table>
+    <thead>
+      <tr><th></th><th>Actie</th>${headCols}</tr>
+    </thead>
+    <tbody>
+      ${dayRows}
+    </tbody>
+  </table>
+  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 50); }</script>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank');
+    if(!w){ alert('Pop-up geblokkeerd. Sta pop-ups toe om te exporteren.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  function rangeLabel(range){
+    if(range==='day') return 'Dag';
+    if(range==='week') return 'Week';
+    if(range==='month') return 'Maand';
+    return range;
   }
 
   function syncDisableStates(data){
