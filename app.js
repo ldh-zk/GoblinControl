@@ -2,6 +2,7 @@
   const MIN_POINTS = 0; // clamp at 0 for kid-friendly UX
   const MINUTES_PER_POINT = 5;
   const STORAGE_KEY = 'screenTimeBuddy:v1';
+  const LOG_LIMIT = 1000;
 
   const kids = [
     { id:'fay', name:'Fay', emoji:'🌸' },
@@ -27,6 +28,9 @@
     kidsGrid: document.getElementById('kidsGrid'),
     logTabs: document.getElementById('logTabs'),
     logContent: document.getElementById('logContent'),
+    statsTabs: document.getElementById('statsTabs'),
+    statsRange: document.getElementById('statsRange'),
+    statsGrid: document.getElementById('statsGrid'),
     today: document.getElementById('today'),
     manualResetBtn: document.getElementById('manualResetBtn'),
     clearAllBtn: document.getElementById('clearAllBtn'),
@@ -101,7 +105,7 @@
       }
       pushLog(k, 'daily-reset', `Dag reset naar ${MAX_POINTS} punten`, 'blue');
       k.points = MAX_POINTS;
-      k.logs = k.logs.slice(0, 50);
+      k.logs = k.logs.slice(0, LOG_LIMIT);
     });
     data.lastReset = dateKey(new Date());
     toastConfetti();
@@ -180,6 +184,20 @@
     el.logTabs.innerHTML = kids.map((k,i)=>`<button class="tab ${i===0?'active':''}" data-tab="${k.id}">${k.name}</button>`).join('');
     renderLogs(data, kids[0].id);
 
+    // Stats header
+    if(el.statsTabs){
+      el.statsTabs.innerHTML = kids.map((k,i)=>`<button class="tab ${i===0?'active':''}" data-tab="${k.id}">${k.name}</button>`).join('');
+    }
+    if(el.statsRange){
+      // ensure exactly one active
+      const active = el.statsRange.querySelector('.seg.active') || el.statsRange.querySelector('.seg');
+      if(active){
+        el.statsRange.querySelectorAll('.seg').forEach(b=>b.classList.remove('active'));
+        active.classList.add('active');
+      }
+    }
+    renderStats(data, kids[0].id, getActiveRange());
+
     bindEvents();
     syncDisableStates(data);
   }
@@ -220,6 +238,30 @@
       renderLogs(load(), t.getAttribute('data-tab'));
       });
       el.logTabs.dataset.stbBound = '1';
+    }
+
+    if(el.statsTabs && !el.statsTabs.dataset.stbBound){
+      el.statsTabs.addEventListener('click', (e)=>{
+        const t = e.target.closest('.tab');
+        if(!t) return;
+        el.statsTabs.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+        t.classList.add('active');
+        const kidId = t.getAttribute('data-tab');
+        renderStats(load(), kidId, getActiveRange());
+      });
+      el.statsTabs.dataset.stbBound = '1';
+    }
+
+    if(el.statsRange && !el.statsRange.dataset.stbBound){
+      el.statsRange.addEventListener('click', (e)=>{
+        const b = e.target.closest('.seg');
+        if(!b) return;
+        el.statsRange.querySelectorAll('.seg').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        const kidId = (el.statsTabs?.querySelector('.tab.active')?.getAttribute('data-tab')) || kids[0].id;
+        renderStats(load(), kidId, getActiveRange());
+      });
+      el.statsRange.dataset.stbBound = '1';
     }
 
     if(el.manualResetBtn && !el.manualResetBtn.dataset.stbBound){
@@ -309,6 +351,63 @@
     el.logContent.innerHTML = items || '<div class="log-item"><div class="log-text">Nog geen logjes</div></div>';
   }
 
+  function getActiveRange(){
+    const r = el.statsRange?.querySelector('.seg.active')?.getAttribute('data-range');
+    return r || 'week';
+  }
+
+  function renderStats(data, kidId, range){
+    if(!el.statsGrid) return;
+    const startTs = rangeStartTs(range);
+    const counts = aggregateCounts(data, kidId, startTs);
+    const pos = positiveActions.map(a=>statCard(a, 'plus', counts[a.id]||0)).join('');
+    const neg = negativeActions.map(a=>statCard(a, 'minus', counts[a.id]||0)).join('');
+    el.statsGrid.innerHTML = pos + neg;
+  }
+
+  function statCard(action, tone, count){
+    return `<div class="stat-card" title="${action.label}">
+      <div class="stat-icon ${tone}">${action.icon}</div>
+      <div class="stat-text">
+        <div class="stat-title">${action.label}</div>
+      </div>
+      <div class="stat-count">${count}</div>
+    </div>`;
+  }
+
+  function aggregateCounts(data, kidId, startTs){
+    const map = Object.create(null);
+    const actionIds = new Set([...positiveActions, ...negativeActions].map(a=>a.id));
+    const logs = data.kids[kidId]?.logs || [];
+    for(const l of logs){
+      if(l.ts < startTs) continue;
+      if(!actionIds.has(l.type)) continue;
+      map[l.type] = (map[l.type]||0) + 1;
+    }
+    return map;
+  }
+
+  function rangeStartTs(range){
+    const now = new Date();
+    if(range === 'day'){
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return d.getTime();
+    }
+    if(range === 'week'){
+      // Monday as start of week
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const day = (d.getDay()+6)%7; // 0..6, 0=Mon
+      d.setDate(d.getDate() - day);
+      d.setHours(0,0,0,0);
+      return d.getTime();
+    }
+    if(range === 'month'){
+      const d = new Date(now.getFullYear(), now.getMonth(), 1);
+      return d.getTime();
+    }
+    return 0;
+  }
+
   function syncDisableStates(data){
     kids.forEach(k => {
       const s = data.kids[k.id];
@@ -335,7 +434,7 @@
     const label = def ? def.label : (isPlus?`+${delta}`:`${delta}`);
 
     pushLog(s, actionId, `${delta>0?'+':''}${delta} punt voor ${label}`, tone);
-    s.logs = s.logs.slice(0, 50);
+    s.logs = s.logs.slice(0, LOG_LIMIT);
     save(data);
 
     animateChange(kidId, before, s.points, isPlus);
@@ -355,7 +454,7 @@
     s.pot = Math.max(0, s.pot - take);
     s.points = Math.min(MAX_POINTS, s.points + take);
     pushLog(s, 'pot-use', `+${take} uit spaarpot naar dagbalans`, 'blue');
-    s.logs = s.logs.slice(0, 50);
+    s.logs = s.logs.slice(0, LOG_LIMIT);
 
     save(data);
     coinFall(kidId);
@@ -373,7 +472,7 @@
     // If above 18, do not auto-move to pot here; this is a simple clamp for the day (no pot change)
     s.points = MAX_POINTS;
     pushLog(s, 'set-max', `Dagbalans gezet op ${MAX_POINTS}`, 'blue');
-    s.logs = s.logs.slice(0, 50);
+    s.logs = s.logs.slice(0, LOG_LIMIT);
 
     save(data);
     animateChange(kidId, before, s.points, s.points>=before);
@@ -465,7 +564,7 @@
     data.settings.dailyMax = next;
     Object.keys(data.kids).forEach(id => {
       pushLog(data.kids[id], 'settings', `Max punten per dag gewijzigd naar ${next}`, 'blue');
-      data.kids[id].logs = data.kids[id].logs.slice(0, 50);
+      data.kids[id].logs = data.kids[id].logs.slice(0, LOG_LIMIT);
     });
     save(data);
     closeSettings();

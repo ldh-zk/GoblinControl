@@ -46,6 +46,21 @@
         <!-- Logs injected by JS -->
       </div>
     </section>
+
+    <section class="stats-section">
+      <div class="stats-header">
+        <h2>Statistieken</h2>
+        <div class="stats-controls">
+          <div class="stats-tabs" id="statsTabs"><!-- Tabs injected by JS --></div>
+          <div class="segmented" id="statsRange" role="tablist" aria-label="Periode">
+            <button class="seg active" data-range="day">Dag</button>
+            <button class="seg" data-range="week">Week</button>
+            <button class="seg" data-range="month">Maand</button>
+          </div>
+        </div>
+      </div>
+      <div class="stats-grid" id="statsGrid"><!-- Stats injected by JS --></div>
+    </section>
   </main>
 
   <footer class="app-footer">
