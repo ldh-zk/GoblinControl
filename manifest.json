@@ -1,6 +1,6 @@
 {
-  "name": "Schermtijd Buddy",
-  "short_name": "Schermtijd",
+  "name": "GoblinControl",
+  "short_name": "GoblinControl",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",

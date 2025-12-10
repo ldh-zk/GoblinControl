@@ -22,18 +22,24 @@ body{
 
 .app-header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 20px;position:sticky;top:0;backdrop-filter: blur(6px);
+  padding:12px 16px;position:sticky;top:0;backdrop-filter: blur(6px);
   background: linear-gradient(180deg, rgba(15,18,39,.9), rgba(15,18,39,.65));
   border-bottom:1px solid rgba(255,255,255,.06)
 }
 .app-header .title{display:flex;align-items:center;gap:12px}
-.app-header .logo{font-size:28px}
+.app-header .logo{width:48px;height:48px;object-fit:contain}
 .app-header h1{font-family:"Baloo 2", cursive;font-weight:800;margin:0;letter-spacing:.2px}
 .app-header .today{opacity:.9;font-weight:700;color:var(--muted)}
 .app-header .header-right{display:flex;align-items:center;gap:10px}
 
-.container{max-width:1100px;margin:20px auto;padding:0 16px;overflow-x:hidden}
+/* Hide date in header on small screens */
+@media (max-width:640px){
+  .app-header .today{display:none}
+}
+
+.container{max-width:1100px;margin:14px auto;padding:0 12px;overflow-x:hidden}
 .kids-grid{display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:20px;align-items:start}
+@media (max-width:640px){.kids-grid{grid-template-columns:1fr}}
 
 /* Force two columns by default; remove single-column fallback to keep both cards visible without horizontal scrolling */
 
@@ -69,7 +75,7 @@ body{
 .progress .ticks span{border-right:1px dashed rgba(255,255,255,.08)}
 
 .actions{display:grid;grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));gap:8px;margin-top:12px}
-@media (max-width:520px){.actions{grid-template-columns:repeat(auto-fit, minmax(100px, 1fr))}}
+@media (max-width:520px){.actions{grid-template-columns:repeat(auto-fit, minmax(100px, 1fr));gap:10px}}
 .btn{
   padding:clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
   border-radius:999px;
@@ -117,7 +123,8 @@ body{
 @keyframes flashb{0%{box-shadow:0 0 0 0 rgba(87,178,255,.0)}40%{box-shadow:0 0 0 6px rgba(87,178,255,.35)}100%{box-shadow:0 0 0 0 rgba(87,178,255,.0)}}
 
 .log-section{margin-top:24px}
-.view-tabs{display:flex;gap:10px;margin:12px 0 8px;justify-content:flex-start;position:sticky;top:72px;z-index:5}
+.view-tabs{display:flex;gap:10px;margin:12px 0 8px;justify-content:flex-start;position:sticky;top:60px;z-index:5}
+@media (max-width:640px){.view-tabs{top:54px}}
 .view-tabs{background:transparent;padding:0}
 .view-tabs .seg{padding:8px 2px;border:none;border-radius:0;cursor:pointer;font-weight:900;color:var(--text);opacity:.85;transition:opacity .12s ease}
 .view-tabs .seg:hover{opacity:1}
@@ -158,6 +165,10 @@ body{
 .field-label{font-weight:800}
 .field-inline{display:flex;align-items:center;gap:10px}
 #dailyMaxInput{width:100px;padding:8px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:#121536;color:var(--text);font-weight:800}
+.modal input[type="text"], .modal input[type="number"]{
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.15);
+  background:#121536; color:var(--text); font-weight:800
+}
 .hint{color:var(--muted);font-size:12px}
 .note{color:var(--muted);font-size:13px;margin:6px 0 0}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
@@ -165,7 +176,17 @@ body{
 /* Export modal sections */
 .modal .section { margin: 12px 0; }
 .modal .section label { display:block; font-weight:800; margin-bottom:8px; color:var(--text) }
-.modal .section .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+.modal .section .row { display:flex; flex-wrap:wrap; gap:12px; align-items:center }
+.modal .section .tab { margin:0 } /* rely on row gap for spacing */
+.modal .section .row .pill { display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); font-weight:800 }
+.modal .section .row .pill .del { cursor:pointer; opacity:.85 }
+/* Emoji picker layout and sizing */
+#emojiPicker { display:grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap:12px }
+#emojiPicker .tab { padding:10px; min-width:44px; display:grid; place-items:center }
+#actionIconInput { margin-top:10px }
+
+/* Extra spacing for earn model add buttons */
+#earnModelModal .section .tab { margin-top:6px }
 
 /* Removed older modal-specific button overrides to unify .btn with .tab style */
 

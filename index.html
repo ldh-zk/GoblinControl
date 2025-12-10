@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Schermtijd Buddy</title>
+  <title>GoblinControl</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -13,8 +13,7 @@
 <body>
   <header class="app-header">
     <div class="title">
-      <span class="logo">🕹️</span>
-      <h1>Schermtijd Buddy</h1>
+      <h1>GoblinControl</h1>
     </div>
     <div class="header-right">
       <div class="today" id="today"></div>
@@ -163,11 +162,94 @@
     </div>
   </div>
 
-  <script>
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
-    }
-  </script>
+    <!-- Earn Model Settings Modal -->
+    <div class="modal-backdrop" id="earnModelModal" hidden>
+      <div class="modal">
+        <div class="modal-header">
+          <h3>Instellingen verdienmodel</h3>
+        </div>
+        <div class="modal-body">
+          <p class="note">Beheer acties waarmee punten verdiend (groen) of verloren (rood) worden.</p>
+          <div class="section">
+            <label>Punten verdienen</label>
+            <div id="earnModelPosList" class="row"><!-- filled by JS --></div>
+            <button class="tab" id="earnModelAddPos">➕ Voeg verdien-actie toe</button>
+          </div>
+          <div class="section">
+            <label>Punten verliezen</label>
+            <div id="earnModelNegList" class="row"><!-- filled by JS --></div>
+            <button class="tab" id="earnModelAddNeg">➕ Voeg verlies-actie toe</button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="tab" id="earnModelClose">Sluiten</button>
+        </div>
+      </div>
+    </div>
+
+  <!-- Add/Edit Action Modal (sibling, not nested) -->
+  <div class="modal-backdrop" id="actionEditModal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Nieuwe actie</h3>
+      </div>
+      <div class="modal-body">
+        <div class="section">
+          <label>Type</label>
+          <div class="segmented" id="actionTypeSeg" role="tablist" aria-label="Type">
+            <button class="seg active" data-type="positive">Verdienen</button>
+            <button class="seg" data-type="negative">Verliezen</button>
+          </div>
+        </div>
+        <div class="section">
+          <label for="actionLabelInput" class="field-label">Naam</label>
+          <input type="text" id="actionLabelInput" placeholder="Bijv. Lezen, Klusje" />
+        </div>
+        <div class="section">
+          <label class="field-label">Emoji kiezen</label>
+          <div id="emojiPicker" class="row">
+            <button class="tab" data-emoji="📚">📚</button>
+            <button class="tab" data-emoji="🧹">🧹</button>
+            <button class="tab" data-emoji="📝">📝</button>
+            <button class="tab" data-emoji="🧠">🧠</button>
+            <button class="tab" data-emoji="🎨">🎨</button>
+            <button class="tab" data-emoji="🎵">🎵</button>
+            <button class="tab" data-emoji="🏃">🏃</button>
+            <button class="tab" data-emoji="🚴">🚴</button>
+            <button class="tab" data-emoji="♟️">♟️</button>
+            <button class="tab" data-emoji="🔤">🔤</button>
+            <button class="tab" data-emoji="➕">➕</button>
+            <button class="tab" data-emoji="✅">✅</button>
+            <button class="tab" data-emoji="🌟">🌟</button>
+            <button class="tab" data-emoji="✨">✨</button>
+            <button class="tab" data-emoji="🚀">🚀</button>
+            <button class="tab" data-emoji="📦">📦</button>
+            <button class="tab" data-emoji="🧩">🧩</button>
+            <button class="tab" data-emoji="🍽️">🍽️</button>
+            <button class="tab" data-emoji="🛏️">🛏️</button>
+            <button class="tab" data-emoji="🧼">🧼</button>
+            <button class="tab" data-emoji="🧒">🧒</button>
+            <button class="tab" data-emoji="👧">👧</button>
+            <button class="tab" data-emoji="👦">👦</button>
+            <button class="tab" data-emoji="⚠️">⚠️</button>
+            <button class="tab" data-emoji="🙉">🙉</button>
+            <button class="tab" data-emoji="😡">😡</button>
+            <button class="tab" data-emoji="🤕">🤕</button>
+            <button class="tab" data-emoji="🤥">🤥</button>
+          </div>
+          <div class="field-inline">
+            <input type="text" id="actionIconInput" placeholder="Of typ/plak een emoji" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="tab" id="actionEditCancel">Annuleren</button>
+        <button class="tab" id="actionEditSave">Opslaan</button>
+      </div>
+    </div>
+  </div>
+
+  
   <link rel="manifest" href="manifest.json" />
   <script src="app.js"></script>
     <script>

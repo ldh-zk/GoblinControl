@@ -10,14 +10,15 @@
     { id:'benjamin', name:'Benjamin', emoji:'🚀' }
   ];
 
-  const positiveActions = [
+  // Default actions (used if none defined in settings)
+  const defaultPositiveActions = [
     { id:'read', label:'Lezen', icon:'📚', delta: +1 },
     { id:'chores', label:'Klusje', icon:'🧹', delta: +1 },
     { id:'math', label:'Rekenen', icon:'➕', delta: +1 },
     { id:'chess', label:'Schaken', icon:'♟️', delta: +1 },
     { id:'bonus', label:'Bonus', icon:'✨', delta: +1 },
   ];
-  const negativeActions = [
+  const defaultNegativeActions = [
     { id:'lie', label:'Liegen', icon:'🤥', delta: -1 },
     { id:'mean', label:'Gemeen', icon:'😡', delta: -1 },
     { id:'disrespect', label:'Respectloos', icon:'🙅', delta: -1 },
@@ -48,6 +49,19 @@
     closeMenuBtn: document.getElementById('closeMenuBtn'),
     menuOpenSettings: document.getElementById('menuOpenSettings'),
     menuOpenExport: document.getElementById('menuOpenExport'),
+    earnModelModal: document.getElementById('earnModelModal'),
+    earnModelClose: document.getElementById('earnModelClose'),
+    earnModelPosList: document.getElementById('earnModelPosList'),
+    earnModelNegList: document.getElementById('earnModelNegList'),
+    earnModelAddPos: document.getElementById('earnModelAddPos'),
+    earnModelAddNeg: document.getElementById('earnModelAddNeg'),
+    actionEditModal: document.getElementById('actionEditModal'),
+    actionTypeSeg: document.getElementById('actionTypeSeg'),
+    actionLabelInput: document.getElementById('actionLabelInput'),
+    actionIconInput: document.getElementById('actionIconInput'),
+    actionEditCancel: document.getElementById('actionEditCancel'),
+    actionEditSave: document.getElementById('actionEditSave'),
+    emojiPicker: document.getElementById('emojiPicker'),
     openSettingsBtn: document.getElementById('openSettingsBtn'),
     settingsModal: document.getElementById('settingsModal'),
     dailyMaxInput: document.getElementById('dailyMaxInput'),
@@ -99,6 +113,12 @@
       };
     } else {
       if(!data.settings) data.settings = { dailyMax: 18 };
+      if(!data.settings.actions){
+        data.settings.actions = {
+          positive: defaultPositiveActions,
+          negative: defaultNegativeActions,
+        };
+      }
       if(typeof data.settings.dailyMax !== 'number' || data.settings.dailyMax <= 0){
         data.settings.dailyMax = 18;
       }
@@ -206,8 +226,9 @@
           </div>
         </div>
         <div class="actions">${[
-            ...positiveActions.map(a => btnHTML(a, 'primary', k.id)),
-            ...negativeActions.map(a => btnHTML(a, 'negative', k.id)),
+            ...getPositiveActions(data).map(a => btnHTML(a, 'primary', k.id)),
+            ...getNegativeActions(data).map(a => btnHTML(a, 'negative', k.id)),
+            addActionButtonHTML(k.id),
           ].join('')}
         </div>
       `;
@@ -239,6 +260,19 @@
   function btnHTML(a, theme, kid){
     return `<button class="btn ${theme}" data-action="${a.id}" data-delta="${a.delta}" data-kid="${kid}"><span class="big">${a.icon}</span><span class="label">${a.label}</span></button>`;
   }
+  function addActionButtonHTML(kid){
+    return `<button class="btn secondary" data-action="add-action" data-kid="${kid}" title="Voeg actie toe"><span class="big">➕</span><span class="label">Actie</span></button>`;
+  }
+  function getPositiveActions(data){
+    return (data.settings?.actions?.positive && Array.isArray(data.settings.actions.positive) && data.settings.actions.positive.length>0)
+      ? data.settings.actions.positive
+      : defaultPositiveActions;
+  }
+  function getNegativeActions(data){
+    return (data.settings?.actions?.negative && Array.isArray(data.settings.actions.negative) && data.settings.actions.negative.length>0)
+      ? data.settings.actions.negative
+      : defaultNegativeActions;
+  }
 
   function potPercent(pot){
     // purely visual: e.g. show up to 100% at 40 points
@@ -256,6 +290,7 @@
 
       if(action === 'use-pot') return handleUsePot(kidId);
         if(action === 'set-max') return handleSetMax(kidId);
+        if(action === 'add-action') return openActionEdit('positive');
 
       const delta = Number(btn.getAttribute('data-delta')) || 0;
       handleDelta(kidId, action, delta);
@@ -449,6 +484,71 @@
       });
       el.menuOpenSettings.dataset.stbBound = '1';
     }
+    // Open earn model settings from menu
+    if(el.menuOpenExport && !el.menuOpenExport.dataset.stbBound){ /* existing */ }
+    if(!document.getElementById('menuOpenEarnModel')){
+      // augment menu with a button dynamically if not present in HTML
+      const section = el.menuModal?.querySelector('.modal-body .section:last-child');
+      if(section){
+        const btn = document.createElement('button');
+        btn.className = 'tab';
+        btn.id = 'menuOpenEarnModel';
+        btn.textContent = '⚙️ Instellingen verdienmodel';
+        section.appendChild(btn);
+        btn.addEventListener('click', ()=>{
+          if(el.menuModal) el.menuModal.hidden = true;
+          openEarnModel();
+        });
+      }
+    }
+    if(el.earnModelClose && !el.earnModelClose.dataset.stbBound){
+      el.earnModelClose.addEventListener('click', ()=>{ if(el.earnModelModal) el.earnModelModal.hidden = true; });
+      el.earnModelClose.dataset.stbBound = '1';
+    }
+    if(el.earnModelModal && !el.earnModelModal.dataset.stbBackdrop){
+      el.earnModelModal.addEventListener('click', (e)=>{ if(e.target===el.earnModelModal){ el.earnModelModal.hidden = true; } });
+      el.earnModelModal.dataset.stbBackdrop = '1';
+    }
+    if(el.earnModelAddPos && !el.earnModelAddPos.dataset.stbBound){
+      el.earnModelAddPos.addEventListener('click', ()=> openActionEdit('positive'));
+      el.earnModelAddPos.dataset.stbBound = '1';
+    }
+    if(el.earnModelAddNeg && !el.earnModelAddNeg.dataset.stbBound){
+      el.earnModelAddNeg.addEventListener('click', ()=> openActionEdit('negative'));
+      el.earnModelAddNeg.dataset.stbBound = '1';
+    }
+    if(el.actionEditCancel && !el.actionEditCancel.dataset.stbBound){
+      el.actionEditCancel.addEventListener('click', ()=>{ if(el.actionEditModal) el.actionEditModal.hidden = true; });
+      el.actionEditCancel.dataset.stbBound = '1';
+    }
+    if(el.actionEditModal && !el.actionEditModal.dataset.stbBackdrop){
+      el.actionEditModal.addEventListener('click', (e)=>{ if(e.target===el.actionEditModal){ el.actionEditModal.hidden = true; } });
+      el.actionEditModal.dataset.stbBackdrop = '1';
+    }
+    if(el.actionTypeSeg && !el.actionTypeSeg.dataset.stbBound){
+      el.actionTypeSeg.addEventListener('click', (e)=>{
+        const b = e.target.closest('.seg'); if(!b) return;
+        el.actionTypeSeg.querySelectorAll('.seg').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      });
+      el.actionTypeSeg.dataset.stbBound = '1';
+    }
+    if(el.actionEditSave && !el.actionEditSave.dataset.stbBound){
+      el.actionEditSave.addEventListener('click', saveActionEdit);
+      el.actionEditSave.dataset.stbBound = '1';
+    }
+    if(el.emojiPicker && !el.emojiPicker.dataset.stbBound){
+      el.emojiPicker.addEventListener('click', (e)=>{
+        const b = e.target.closest('[data-emoji]');
+        if(!b) return;
+        const emoji = b.getAttribute('data-emoji');
+        if(el.actionIconInput){ el.actionIconInput.value = emoji; }
+        // visual feedback
+        el.emojiPicker.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+      });
+      el.emojiPicker.dataset.stbBound = '1';
+    }
     if(el.menuOpenExport && !el.menuOpenExport.dataset.stbBound){
       el.menuOpenExport.addEventListener('click', ()=>{
         if(el.menuModal) el.menuModal.hidden = true;
@@ -521,11 +621,11 @@
     if(!el.statsGrid) return;
     const startTs = rangeStartTs(range);
     const counts = aggregateCounts(data, kidId, startTs);
-    const pos = positiveActions.map(a=>{
+    const pos = getPositiveActions(data).map(a=>{
       const series = sevenDaySeries(data, kidId, a.id);
       return statCard(a, 'plus', counts[a.id]||0, series);
     }).join('');
-    const neg = negativeActions.map(a=>{
+    const neg = getNegativeActions(data).map(a=>{
       const series = sevenDaySeries(data, kidId, a.id);
       return statCard(a, 'minus', counts[a.id]||0, series);
     }).join('');
@@ -551,7 +651,7 @@
 
   function aggregateCounts(data, kidId, startTs){
     const map = Object.create(null);
-    const actionIds = new Set([...positiveActions, ...negativeActions].map(a=>a.id));
+    const actionIds = new Set([...getPositiveActions(data), ...getNegativeActions(data)].map(a=>a.id));
     const logs = data.kids[kidId]?.logs || [];
     for(const l of logs){
       if(l.ts < startTs) continue;
@@ -747,7 +847,7 @@
 
     const isPlus = delta > 0;
     const tone = isPlus ? 'plus' : 'minus';
-    const def = [...positiveActions, ...negativeActions].find(a=>a.id===actionId);
+    const def = [...getPositiveActions(load()), ...getNegativeActions(load())].find(a=>a.id===actionId);
     const label = def ? def.label : (isPlus?`+${delta}`:`${delta}`);
 
     pushLog(s, actionId, `${delta>0?'+':''}${delta} punt voor ${label}`, tone);
@@ -759,6 +859,90 @@
     syncDisableStates(data);
 
     if(isPlus) toastSpark();
+  }
+
+  // --- Earn model management ---
+  function openActionEdit(kind){
+    if(!el.actionEditModal) return;
+    // Default type selection
+    if(el.actionTypeSeg){
+      el.actionTypeSeg.querySelectorAll('.seg').forEach(x=>{
+        const t = x.getAttribute('data-type');
+        x.classList.toggle('active', t===kind);
+      });
+    }
+    if(el.actionLabelInput) el.actionLabelInput.value = '';
+    if(el.actionIconInput) el.actionIconInput.value = '';
+    if(el.emojiPicker){ el.emojiPicker.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); }
+    el.actionEditModal.hidden = false;
+  }
+
+  function saveActionEdit(){
+    const kind = el.actionTypeSeg?.querySelector('.seg.active')?.getAttribute('data-type') || 'positive';
+    const label = (el.actionLabelInput?.value || '').trim();
+    const icon = (el.actionIconInput?.value || '').trim() || (kind==='positive'?'✅':'⚠️');
+    if(!label) return;
+    const id = label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$|--+/g,'');
+    const data = load();
+    const exists = [...getPositiveActions(data), ...getNegativeActions(data)].some(a=>a.id===id);
+    const finalId = exists ? (id + '-' + Math.random().toString(36).slice(2,6)) : id;
+    const entry = { id: finalId, label, icon, delta: kind==='positive'?+1:-1 };
+    if(kind==='positive') data.settings.actions.positive.unshift(entry);
+    else data.settings.actions.negative.unshift(entry);
+    save(data);
+    if(el.actionEditModal) el.actionEditModal.hidden = true;
+    openEarnModel();
+    refresh();
+  }
+
+  function openEarnModel(){
+    const data = load();
+    // render lists
+    if(el.earnModelPosList){
+      el.earnModelPosList.innerHTML = getPositiveActions(data).map(a=>
+        `<span class="pill">${a.icon} ${escapeHTML(a.label)} <span class="del" data-del-type="positive" data-del-id="${a.id}">✖</span></span>`
+      ).join('');
+    }
+    if(el.earnModelNegList){
+      el.earnModelNegList.innerHTML = getNegativeActions(data).map(a=>
+        `<span class="pill">${a.icon} ${escapeHTML(a.label)} <span class="del" data-del-type="negative" data-del-id="${a.id}">✖</span></span>`
+      ).join('');
+    }
+    // bind delete via delegation
+    if(!document.body.dataset.stbEarnDel){
+      document.addEventListener('click', (ev)=>{
+        const del = ev.target.closest && ev.target.closest('.pill .del');
+        if(!del) return;
+        const dtype = del.getAttribute('data-del-type');
+        const id = del.getAttribute('data-del-id');
+        removeAction(dtype, id);
+      });
+      document.body.dataset.stbEarnDel = '1';
+    }
+    if(el.earnModelModal) el.earnModelModal.hidden = false;
+  }
+
+  function addAction(kind){
+    const label = prompt(kind==='positive' ? 'Nieuwe verdien-actie naam:' : 'Nieuwe verlies-actie naam:');
+    if(!label || !label.trim()) return;
+    const icon = prompt('Emoji voor de actie (bijv. 📚, 🧹, ⚠️):') || (kind==='positive'?'✅':'⚠️');
+    const id = label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$|--+/g,'');
+    const data = load();
+    const exists = [...getPositiveActions(data), ...getNegativeActions(data)].some(a=>a.id===id);
+    const finalId = exists ? (id + '-' + Math.random().toString(36).slice(2,6)) : id;
+    const entry = { id: finalId, label: label.trim(), icon, delta: kind==='positive'?+1:-1 };
+    if(kind==='positive') data.settings.actions.positive.unshift(entry);
+    else data.settings.actions.negative.unshift(entry);
+    save(data);
+    openEarnModel(); // re-render
+    refresh();
+  }
+
+  function removeAction(kind, id){
+    const data = load();
+    const arr = kind==='positive' ? data.settings.actions.positive : data.settings.actions.negative;
+    const idx = arr.findIndex(a=>a.id===id);
+    if(idx>=0){ arr.splice(idx,1); save(data); openEarnModel(); refresh(); }
   }
 
   function handleUsePot(kidId){
