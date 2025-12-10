@@ -13,17 +13,12 @@
 <body>
   <header class="app-header">
     <div class="title">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a63c7">
       <span class="logo">🕹️</span>
       <h1>Schermtijd Buddy</h1>
     </div>
     <div class="header-right">
       <div class="today" id="today"></div>
-      <button class="btn secondary" id="openMenuBtn" title="Menu">
-        <span class="big">☰</span>
-        <span class="label">Menu</span>
-      </button>
+      <button class="tab" id="openMenuBtn" title="Menu">☰ Menu</button>
     </div>
   </header>
 
@@ -44,7 +39,7 @@
           <div class="log-tabs" id="logTabs">
             <!-- Tabs injected by JS -->
           </div>
-          <button class="btn secondary" id="exportPdfBtn" title="Exporteer PDF van actief logboek">
+          <button class="tab" id="exportPdfBtn" title="Exporteer PDF van actief logboek">
             <span class="big">🖨️</span>
             <span class="label">Exporteer PDF</span>
           </button>
@@ -65,7 +60,7 @@
             <button class="seg" data-range="week">Week</button>
             <button class="seg" data-range="month">Maand</button>
           </div>
-          <button class="btn secondary" id="statsExportPdfBtn" title="Exporteer statistieken naar PDF">
+          <button class="tab" id="statsExportPdfBtn" title="Exporteer statistieken naar PDF">
             <span class="big">🖨️</span>
             <span class="label">Exporteer PDF</span>
           </button>
@@ -77,9 +72,9 @@
 
   <footer class="app-footer">
     <div>
-      <button class="btn btn-secondary" id="manualResetBtn" title="Reset dag (verplaatst overschot naar spaarpot)">🔄 Dag reset</button>
-      <button class="btn btn-secondary" id="clearAllBtn" title="Verwijder alle data">🧹 Wis data</button>
-      <button class="btn btn-secondary" id="openExportBtn" title="Open exportopties">⬇️ Exporteren…</button>
+      <button class="tab" id="manualResetBtn" title="Reset dag (verplaatst overschot naar spaarpot)">🔄 Dag reset</button>
+      <button class="tab" id="clearAllBtn" title="Verwijder alle data">🧹 Wis data</button>
+      <button class="tab" id="openExportBtn" title="Open exportopties">⬇️ Exporteren…</button>
       <input type="file" id="importFileInput" accept="application/json" style="display:none" />
     </div>
     <small>1 punt = 5 minuten schermtijd • Max <span id="ruleMax">18</span> punten per dag</small>
@@ -102,8 +97,8 @@
         <p class="note">Dit bepaalt de dagelijkse startbalans en het maximum waar de dagbalans tot kan worden aangevuld. Overschot boven dit maximum gaat bij de dagelijkse reset naar de spaarpot.</p>
       </div>
       <div class="modal-actions">
-        <button class="btn secondary" id="cancelSettingsBtn">Annuleren</button>
-        <button class="btn primary" id="saveSettingsBtn">Opslaan</button>
+        <button class="tab" id="cancelSettingsBtn">Annuleren</button>
+        <button class="tab" id="saveSettingsBtn">Opslaan</button>
       </div>
     </div>
   </div>
@@ -118,8 +113,8 @@
         <div class="section">
           <label>Logboek per kind (PDF)</label>
           <div class="row">
-            <button class="btn secondary" data-export="logs" data-kid="fay">🖨️ Log Fay</button>
-            <button class="btn secondary" data-export="logs" data-kid="benjamin">🖨️ Log Benjamin</button>
+            <button class="tab" data-export="logs" data-kid="fay">🖨️ Log Fay</button>
+            <button class="tab" data-export="logs" data-kid="benjamin">🖨️ Log Benjamin</button>
           </div>
         </div>
         <div class="section">
@@ -130,20 +125,20 @@
               <option value="week" selected>Week</option>
               <option value="month">Maand</option>
             </select>
-            <button class="btn secondary" data-export="stats" data-kid="fay">🖨️ Stats Fay</button>
-            <button class="btn secondary" data-export="stats" data-kid="benjamin">🖨️ Stats Benjamin</button>
+            <button class="tab" data-export="stats" data-kid="fay">🖨️ Stats Fay</button>
+            <button class="tab" data-export="stats" data-kid="benjamin">🖨️ Stats Benjamin</button>
           </div>
         </div>
         <div class="section">
           <label>Volledige data (backup)</label>
           <div class="row">
-            <button class="btn secondary" id="exportJsonBtn">⬇️ Exporteer JSON</button>
-            <button class="btn secondary" id="importJsonBtn">⬆️ Importeer JSON</button>
+            <button class="tab" id="exportJsonBtn">⬇️ Exporteer JSON</button>
+            <button class="tab" id="importJsonBtn">⬆️ Importeer JSON</button>
           </div>
         </div>
       </div>
       <div class="modal-actions">
-        <button class="btn" id="closeExportBtn">Sluiten</button>
+        <button class="tab" id="closeExportBtn">Sluiten</button>
       </div>
     </div>
   </div>
@@ -156,14 +151,14 @@
       </div>
       <div class="modal-body">
         <div class="section">
-          <button class="btn" id="menuOpenSettings">⚙️ Instellingen</button>
+          <button class="tab" id="menuOpenSettings">⚙️ Instellingen</button>
         </div>
         <div class="section">
-          <button class="btn" id="menuOpenExport">⬇️ Exporteren…</button>
+          <button class="tab" id="menuOpenExport">⬇️ Exporteren…</button>
         </div>
       </div>
       <div class="modal-actions">
-        <button class="btn" id="closeMenuBtn">Sluiten</button>
+        <button class="tab" id="closeMenuBtn">Sluiten</button>
       </div>
     </div>
   </div>

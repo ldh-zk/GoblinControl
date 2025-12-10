@@ -17,6 +17,7 @@ body{
   background: radial-gradient(1200px 600px at 85% -10%, #1c2150 0%, #0f1227 60%) fixed;
   color:var(--text);
   font-family:"Nunito", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  overflow-x:hidden;
 }
 
 .app-header{
@@ -31,12 +32,10 @@ body{
 .app-header .today{opacity:.9;font-weight:700;color:var(--muted)}
 .app-header .header-right{display:flex;align-items:center;gap:10px}
 
-.container{max-width:1100px;margin:20px auto;padding:0 16px}
-.kids-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.container{max-width:1100px;margin:20px auto;padding:0 16px;overflow-x:hidden}
+.kids-grid{display:grid;grid-template-columns:repeat(2,minmax(280px,1fr));gap:20px;align-items:start}
 
-@media (max-width:900px){
-  .kids-grid{grid-template-columns:1fr}
-}
+/* Force two columns by default; remove single-column fallback to keep both cards visible without horizontal scrolling */
 
 .card{
   background: linear-gradient(180deg, rgba(22,26,54,.9), rgba(22,26,54,.8));
@@ -69,20 +68,25 @@ body{
 .progress .ticks{position:absolute;inset:0;display:grid;grid-template-columns:repeat(18,1fr)}
 .progress .ticks span{border-right:1px dashed rgba(255,255,255,.08)}
 
-.actions{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
-@media (max-width:520px){.actions{grid-template-columns:repeat(3,1fr)}}
+.actions{display:grid;grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));gap:8px;margin-top:12px}
+@media (max-width:520px){.actions{grid-template-columns:repeat(auto-fit, minmax(100px, 1fr))}}
 .btn{
-  border:none;border-radius:12px;padding:10px 12px;cursor:pointer;font-weight:800;color:#0b0d1d;
-  background:linear-gradient(180deg, #fff, #efefff);box-shadow:0 4px 0 rgba(0,0,0,.15);
-  transition:transform .06s ease, filter .15s ease;display:flex;flex-direction:column;gap:4px;align-items:center
+  padding:clamp(8px, 1.8vw, 12px) clamp(10px, 2.2vw, 14px);
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  cursor:pointer;
+  color:var(--text);
+  opacity:1;
+  font-weight:900;
+  letter-spacing:.2px;
+  background:rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:8px;justify-content:center;
+  transition:opacity .12s ease, transform .06s ease;
 }
+.btn:hover{background:rgba(255,255,255,.1)}
 .btn:active{transform:translateY(1px)}
-.btn .big{font-size:18px}
-.btn .label{font-size:11px;color:#2b2f55}
-.btn.negative{background:linear-gradient(180deg, #ffd5d6, #ffc9cb)}
-.btn.primary{background:linear-gradient(180deg, #baf7da, #9df0c6)}
-.btn.secondary{background:linear-gradient(180deg, #d9deff, #c6ceff)}
-.btn.blue{background:linear-gradient(180deg, #cfe7ff, #b8dbff)}
+.btn .big{font-size:clamp(14px, 2.5vw, 18px)}
+.btn .label{font-size:clamp(12px, 2vw, 14px);color:var(--text)}
 
 .spaarpot{
   display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px;border:1px dashed rgba(255,255,255,.18);
@@ -151,6 +155,27 @@ body{
 .hint{color:var(--muted);font-size:12px}
 .note{color:var(--muted);font-size:13px;margin:6px 0 0}
 .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:12px}
+
+/* Export modal sections */
+.modal .section { margin: 12px 0; }
+.modal .section label { display:block; font-weight:800; margin-bottom:8px; color:var(--text) }
+.modal .section .row { display:flex; flex-wrap:wrap; gap:10px; align-items:center }
+
+/* Removed older modal-specific button overrides to unify .btn with .tab style */
+
+/* Export range select to match buttons */
+#exportStatsRange {
+  appearance: none;
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #121536;
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* Menu button visual consistency */
+#openMenuBtn { background: linear-gradient(180deg, #d9deff, #c6ceff); color: #0b0d1d }
 
 /* Stats */
 .stats-section{margin-top:24px}
