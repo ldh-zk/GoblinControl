@@ -20,9 +20,9 @@
     </div>
     <div class="header-right">
       <div class="today" id="today"></div>
-      <button class="btn secondary" id="openSettingsBtn" title="Instellingen">
-        <span class="big">⚙️</span>
-        <span class="label">Instellingen</span>
+      <button class="btn secondary" id="openMenuBtn" title="Menu">
+        <span class="big">☰</span>
+        <span class="label">Menu</span>
       </button>
     </div>
   </header>
@@ -79,8 +79,7 @@
     <div>
       <button class="btn btn-secondary" id="manualResetBtn" title="Reset dag (verplaatst overschot naar spaarpot)">🔄 Dag reset</button>
       <button class="btn btn-secondary" id="clearAllBtn" title="Verwijder alle data">🧹 Wis data</button>
-      <button class="btn btn-secondary" id="exportJsonBtn" title="Exporteer alle data als JSON">⬇️ Exporteer JSON</button>
-      <button class="btn btn-secondary" id="importJsonBtn" title="Importeer JSON backup">⬆️ Importeer JSON</button>
+      <button class="btn btn-secondary" id="openExportBtn" title="Open exportopties">⬇️ Exporteren…</button>
       <input type="file" id="importFileInput" accept="application/json" style="display:none" />
     </div>
     <small>1 punt = 5 minuten schermtijd • Max <span id="ruleMax">18</span> punten per dag</small>
@@ -105,6 +104,66 @@
       <div class="modal-actions">
         <button class="btn secondary" id="cancelSettingsBtn">Annuleren</button>
         <button class="btn primary" id="saveSettingsBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Modal -->
+  <div class="modal-backdrop" id="exportModal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Exporteren</h3>
+      </div>
+      <div class="modal-body">
+        <div class="section">
+          <label>Logboek per kind (PDF)</label>
+          <div class="row">
+            <button class="btn secondary" data-export="logs" data-kid="fay">🖨️ Log Fay</button>
+            <button class="btn secondary" data-export="logs" data-kid="benjamin">🖨️ Log Benjamin</button>
+          </div>
+        </div>
+        <div class="section">
+          <label>Statistieken (PDF)</label>
+          <div class="row">
+            <select id="exportStatsRange">
+              <option value="day">Dag</option>
+              <option value="week" selected>Week</option>
+              <option value="month">Maand</option>
+            </select>
+            <button class="btn secondary" data-export="stats" data-kid="fay">🖨️ Stats Fay</button>
+            <button class="btn secondary" data-export="stats" data-kid="benjamin">🖨️ Stats Benjamin</button>
+          </div>
+        </div>
+        <div class="section">
+          <label>Volledige data (backup)</label>
+          <div class="row">
+            <button class="btn secondary" id="exportJsonBtn">⬇️ Exporteer JSON</button>
+            <button class="btn secondary" id="importJsonBtn">⬆️ Importeer JSON</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="closeExportBtn">Sluiten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App Menu Modal -->
+  <div class="modal-backdrop" id="menuModal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Menu</h3>
+      </div>
+      <div class="modal-body">
+        <div class="section">
+          <button class="btn" id="menuOpenSettings">⚙️ Instellingen</button>
+        </div>
+        <div class="section">
+          <button class="btn" id="menuOpenExport">⬇️ Exporteren…</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="closeMenuBtn">Sluiten</button>
       </div>
     </div>
   </div>

@@ -36,9 +36,18 @@
     today: document.getElementById('today'),
     manualResetBtn: document.getElementById('manualResetBtn'),
     clearAllBtn: document.getElementById('clearAllBtn'),
+    openExportBtn: document.getElementById('openExportBtn'),
+    exportModal: document.getElementById('exportModal'),
+    closeExportBtn: document.getElementById('closeExportBtn'),
+    exportStatsRange: document.getElementById('exportStatsRange'),
     exportJsonBtn: document.getElementById('exportJsonBtn'),
     importJsonBtn: document.getElementById('importJsonBtn'),
     importFileInput: document.getElementById('importFileInput'),
+    openMenuBtn: document.getElementById('openMenuBtn'),
+    menuModal: document.getElementById('menuModal'),
+    closeMenuBtn: document.getElementById('closeMenuBtn'),
+    menuOpenSettings: document.getElementById('menuOpenSettings'),
+    menuOpenExport: document.getElementById('menuOpenExport'),
     openSettingsBtn: document.getElementById('openSettingsBtn'),
     settingsModal: document.getElementById('settingsModal'),
     dailyMaxInput: document.getElementById('dailyMaxInput'),
@@ -336,6 +345,38 @@
       });
       el.clearAllBtn.dataset.stbBound = '1';
     }
+    if(el.openExportBtn && !el.openExportBtn.dataset.stbBound){
+      el.openExportBtn.addEventListener('click', ()=>{
+        if(el.exportModal) el.exportModal.hidden = false;
+      });
+      el.openExportBtn.dataset.stbBound = '1';
+    }
+    if(el.closeExportBtn && !el.closeExportBtn.dataset.stbBound){
+      el.closeExportBtn.addEventListener('click', ()=>{
+        if(el.exportModal) el.exportModal.hidden = true;
+      });
+      el.closeExportBtn.dataset.stbBound = '1';
+    }
+    if(el.exportModal && !el.exportModal.dataset.stbBackdrop){
+      el.exportModal.addEventListener('click', (e)=>{
+        if(e.target === el.exportModal){ el.exportModal.hidden = true; }
+      });
+      el.exportModal.dataset.stbBackdrop = '1';
+    }
+    if(!document.body.dataset.stbExportDelegation){
+      document.addEventListener('click', (ev)=>{
+        const btn = ev.target.closest && ev.target.closest('[data-export]');
+        if(!btn) return;
+        const kind = btn.getAttribute('data-export');
+        const kidId = btn.getAttribute('data-kid');
+        if(kind === 'logs' && kidId){ exportLogsToPDF(kidId); }
+        if(kind === 'stats' && kidId){
+          const range = el.exportStatsRange?.value || getActiveRange();
+          exportStatsToPDF(kidId, range);
+        }
+      });
+      document.body.dataset.stbExportDelegation = '1';
+    }
     if(el.exportJsonBtn && !el.exportJsonBtn.dataset.stbBound){
       el.exportJsonBtn.addEventListener('click', ()=>{
         const data = load();
@@ -383,9 +424,37 @@
       el.exportPdfBtn.dataset.stbBound = '1';
     }
 
-    if(el.openSettingsBtn && !el.openSettingsBtn.dataset.stbBound){
-      el.openSettingsBtn.addEventListener('click', openSettings);
-      el.openSettingsBtn.dataset.stbBound = '1';
+    if(el.openMenuBtn && !el.openMenuBtn.dataset.stbBound){
+      el.openMenuBtn.addEventListener('click', ()=>{
+        if(el.menuModal) el.menuModal.hidden = false;
+      });
+      el.openMenuBtn.dataset.stbBound = '1';
+    }
+    if(el.closeMenuBtn && !el.closeMenuBtn.dataset.stbBound){
+      el.closeMenuBtn.addEventListener('click', ()=>{
+        if(el.menuModal) el.menuModal.hidden = true;
+      });
+      el.closeMenuBtn.dataset.stbBound = '1';
+    }
+    if(el.menuModal && !el.menuModal.dataset.stbBackdrop){
+      el.menuModal.addEventListener('click', (e)=>{
+        if(e.target === el.menuModal){ el.menuModal.hidden = true; }
+      });
+      el.menuModal.dataset.stbBackdrop = '1';
+    }
+    if(el.menuOpenSettings && !el.menuOpenSettings.dataset.stbBound){
+      el.menuOpenSettings.addEventListener('click', ()=>{
+        if(el.menuModal) el.menuModal.hidden = true;
+        openSettings();
+      });
+      el.menuOpenSettings.dataset.stbBound = '1';
+    }
+    if(el.menuOpenExport && !el.menuOpenExport.dataset.stbBound){
+      el.menuOpenExport.addEventListener('click', ()=>{
+        if(el.menuModal) el.menuModal.hidden = true;
+        if(el.exportModal) el.exportModal.hidden = false;
+      });
+      el.menuOpenExport.dataset.stbBound = '1';
     }
     if(el.cancelSettingsBtn && !el.cancelSettingsBtn.dataset.stbBound){
       el.cancelSettingsBtn.addEventListener('click', closeSettings);
