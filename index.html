@@ -29,6 +29,11 @@
       <!-- Child cards injected by JS -->
     </section>
 
+    <div class="view-tabs segmented" id="viewTabs" role="tablist" aria-label="Weergave">
+      <button class="seg active" data-view="log">Logboek</button>
+      <button class="seg" data-view="stats">Statistieken</button>
+    </div>
+
     <section class="log-section">
       <div class="log-header">
         <h2>Logboek</h2>
@@ -47,7 +52,7 @@
       </div>
     </section>
 
-    <section class="stats-section">
+    <section class="stats-section compact" hidden>
       <div class="stats-header">
         <h2>Statistieken</h2>
         <div class="stats-controls">

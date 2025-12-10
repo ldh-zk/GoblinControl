@@ -42,6 +42,9 @@
     saveSettingsBtn: document.getElementById('saveSettingsBtn'),
     ruleMax: document.getElementById('ruleMax'),
     exportPdfBtn: document.getElementById('exportPdfBtn'),
+    logSection: document.querySelector('.log-section'),
+    statsSection: document.querySelector('.stats-section'),
+    viewTabs: document.getElementById('viewTabs'),
   };
 
   // --- State & Storage ---
@@ -263,6 +266,27 @@
         renderStats(load(), kidId, getActiveRange());
       });
       el.statsRange.dataset.stbBound = '1';
+    }
+
+    if(el.viewTabs && !el.viewTabs.dataset.stbBound){
+      el.viewTabs.addEventListener('click', (e)=>{
+        const b = e.target.closest('.seg');
+        if(!b) return;
+        el.viewTabs.querySelectorAll('.seg').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        const view = b.getAttribute('data-view');
+        if(view === 'stats'){
+          if(el.logSection) el.logSection.hidden = true;
+          if(el.statsSection) el.statsSection.hidden = false;
+          // Ensure stats are up-to-date when switching
+          const kidId = (el.statsTabs?.querySelector('.tab.active')?.getAttribute('data-tab')) || kids[0].id;
+          renderStats(load(), kidId, getActiveRange());
+        } else {
+          if(el.statsSection) el.statsSection.hidden = true;
+          if(el.logSection) el.logSection.hidden = false;
+        }
+      });
+      el.viewTabs.dataset.stbBound = '1';
     }
 
     if(el.statsExportPdfBtn && !el.statsExportPdfBtn.dataset.stbBound){
