@@ -108,6 +108,7 @@ body{
 
 .log-section{margin-top:24px}
 .log-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.log-controls{display:flex;align-items:center;gap:10px}
 .log-tabs{display:flex;gap:8px}
 .tab{padding:8px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.1);cursor:pointer;color:var(--text);opacity:.8}
 .tab.active{background:linear-gradient(180deg, #1e255a, #171c4a);opacity:1}

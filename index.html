@@ -15,7 +15,13 @@
       <span class="logo">🕹️</span>
       <h1>Schermtijd Buddy</h1>
     </div>
-    <div class="today" id="today"></div>
+    <div class="header-right">
+      <div class="today" id="today"></div>
+      <button class="btn secondary" id="openSettingsBtn" title="Instellingen">
+        <span class="big">⚙️</span>
+        <span class="label">Instellingen</span>
+      </button>
+    </div>
   </header>
 
   <main class="container">
@@ -26,8 +32,14 @@
     <section class="log-section">
       <div class="log-header">
         <h2>Logboek</h2>
-        <div class="log-tabs" id="logTabs">
-          <!-- Tabs injected by JS -->
+        <div class="log-controls">
+          <div class="log-tabs" id="logTabs">
+            <!-- Tabs injected by JS -->
+          </div>
+          <button class="btn secondary" id="exportPdfBtn" title="Exporteer PDF van actief logboek">
+            <span class="big">🖨️</span>
+            <span class="label">Exporteer PDF</span>
+          </button>
         </div>
       </div>
       <div class="log-content" id="logContent">
@@ -41,10 +53,31 @@
       <button class="btn btn-secondary" id="manualResetBtn" title="Reset dag (verplaatst overschot naar spaarpot)">🔄 Dag reset</button>
       <button class="btn btn-secondary" id="clearAllBtn" title="Verwijder alle data">🧹 Wis data</button>
     </div>
-    <small>1 punt = 5 minuten schermtijd • Max 18 punten per dag</small>
+    <small>1 punt = 5 minuten schermtijd • Max <span id="ruleMax">18</span> punten per dag</small>
   </footer>
 
   <div id="confetti" aria-hidden="true"></div>
+
+  <!-- Settings Modal -->
+  <div class="modal-backdrop" id="settingsModal" hidden>
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Instellingen</h3>
+      </div>
+      <div class="modal-body">
+        <label for="dailyMaxInput" class="field-label">Maximale punten per dag</label>
+        <div class="field-inline">
+          <input type="number" id="dailyMaxInput" min="6" max="36" step="1" value="18" />
+          <span class="hint">1 punt = 5 min • Aanbevolen: 12–24</span>
+        </div>
+        <p class="note">Dit bepaalt de dagelijkse startbalans en het maximum waar de dagbalans tot kan worden aangevuld. Overschot boven dit maximum gaat bij de dagelijkse reset naar de spaarpot.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="cancelSettingsBtn">Annuleren</button>
+        <button class="btn primary" id="saveSettingsBtn">Opslaan</button>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>

@@ -36,6 +36,7 @@
     cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
     saveSettingsBtn: document.getElementById('saveSettingsBtn'),
     ruleMax: document.getElementById('ruleMax'),
+    exportPdfBtn: document.getElementById('exportPdfBtn'),
   };
 
   // --- State & Storage ---
@@ -238,6 +239,14 @@
         }
       });
       el.clearAllBtn.dataset.stbBound = '1';
+    }
+    if(el.exportPdfBtn && !el.exportPdfBtn.dataset.stbBound){
+      el.exportPdfBtn.addEventListener('click', ()=>{
+        const activeTab = document.querySelector('.log-tabs .tab.active');
+        const kidId = activeTab ? activeTab.getAttribute('data-tab') : (kids[0]?.id);
+        if(kidId) exportLogsToPDF(kidId);
+      });
+      el.exportPdfBtn.dataset.stbBound = '1';
     }
 
     if(el.openSettingsBtn && !el.openSettingsBtn.dataset.stbBound){
@@ -480,6 +489,73 @@
     void amt.offsetWidth;
     amt.classList.add('flash-blue');
     setTimeout(()=>amt.classList.remove('flash-blue'), 650);
+  }
+
+  // --- Export PDF ---
+  function exportLogsToPDF(kidId){
+    const data = load();
+    const kmeta = kids.find(k=>k.id===kidId);
+    const name = kmeta ? kmeta.name : kidId;
+    const logs = (data.kids[kidId]?.logs || []).slice();
+    const today = new Date();
+    const title = `Schermtijd Buddy — Logboek ${name}`;
+    const dateStr = today.toLocaleDateString('nl-NL', { weekday:'long', day:'2-digit', month:'long', year:'numeric' });
+
+    // Build printable HTML
+    const rows = logs.map(l=>{
+      const dt = new Date(l.ts);
+      const t = dt.toLocaleString('nl-NL', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const sym = l.tone==='plus'?'➕':l.tone==='minus'?'➖':'🏦';
+      return `<tr>
+        <td class="when">${t}</td>
+        <td class="tone ${l.tone}">${sym}</td>
+        <td class="text">${escapeHTML(l.text)}</td>
+      </tr>`;
+    }).join('');
+
+    const html = `<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <title>${title}</title>
+  <style>
+    @page { size: A4; margin: 16mm; }
+    body{ font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#111; }
+    h1{ margin:0 0 4px; font-size:20px }
+    .subtitle{ color:#555; margin:0 0 12px; }
+    table{ width:100%; border-collapse:collapse; }
+    th, td{ border-bottom:1px solid #e6e6e6; padding:8px 6px; vertical-align:top; }
+    th{ text-align:left; color:#444; font-weight:700; }
+    .when{ white-space:nowrap; color:#333 }
+    .tone.plus{ color:#0a8f5b }
+    .tone.minus{ color:#b22222 }
+    .tone.blue{ color:#0a63c7 }
+  </style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <div class="subtitle">Gegenereerd op ${escapeHTML(dateStr)}</div>
+  <table>
+    <thead>
+      <tr><th>Wanneer</th><th>Type</th><th>Beschrijving</th></tr>
+    </thead>
+    <tbody>
+      ${rows || '<tr><td colspan="3">Geen logitems</td></tr>'}
+    </tbody>
+  </table>
+  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 50); }</script>
+</body>
+</html>`;
+
+    const w = window.open('', '_blank');
+    if(!w){ alert('Pop-up geblokkeerd. Sta pop-ups toe om te exporteren.'); return; }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
+
+  function escapeHTML(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
   }
 
   // --- Boot ---
